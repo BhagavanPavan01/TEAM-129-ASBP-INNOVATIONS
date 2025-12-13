@@ -1,78 +1,135 @@
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const http = require('http');
-const socketIo = require('socket.io');
-const rateLimit = require('express-rate-limit');
-const mongoose = require('mongoose');
-
-dotenv.config();
-
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    credentials: true
-  }
-});
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests'
-});
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(limiter);
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/disaster_warning')
-  .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.log('❌ MongoDB Error:', err));
-
-// Routes
-const weatherRoutes = require('./routes/weatherRoutes');
-const alertRoutes = require('./routes/alertRoutes');
-const riskRoutes = require('./routes/riskRoutes');
-const aiRoutes = require('./routes/aiRoutes');
-
-app.use('/api/weather', weatherRoutes);
-app.use('/api/alerts', alertRoutes);
-app.use('/api/risks', riskRoutes);
-app.use('/api/ai', aiRoutes);
-
-// Health check
-app.get('/health', (req, res) => {
+// Health Check
+app.get('/', (req, res) => {
   res.json({ 
-    status: 'active', 
-    time: new Date().toISOString(),
-    services: ['weather', 'alerts', 'risks', 'ai']
+    status: 'active',
+    message: 'Disaster Warning Backend is running!',
+    time: new Date().toISOString()
   });
 });
 
-// Real-time alerts via Socket.IO
-io.on('connection', (socket) => {
-  console.log('🔌 New client connected:', socket.id);
+// Test route
+app.get('/test', (req, res) => {
+  res.json({ message: 'Backend is working!' });
+});
+
+// Risk Report API - For your frontend form
+app.post('/api/risks/report', (req, res) => {
+  console.log('📝 Risk Report Received:', req.body);
   
-  socket.on('subscribe-alerts', (city) => {
-    socket.join(city);
-    console.log(`📍 ${socket.id} subscribed to ${city}`);
-  });
+  // Create response
+  const response = {
+    success: true,
+    report_id: `REPORT_${Date.now()}`,
+    message: 'Risk report submitted successfully!',
+    timestamp: new Date().toISOString(),
+    data: req.body
+  };
   
-  socket.on('disconnect', () => {
-    console.log('❌ Client disconnected:', socket.id);
+  console.log('📤 Sending response:', response);
+  res.json(response);
+});
+
+// Weather API endpoint
+app.get('/api/weather/:city', (req, res) => {
+  const city = req.params.city;
+  console.log(`🌤️ Weather request for: ${city}`);
+  
+  // Mock weather data (replace with real API call)
+  const weatherData = {
+    city: city,
+    temperature: Math.floor(Math.random() * 15) + 25,
+    feels_like: Math.floor(Math.random() * 10) + 25,
+    humidity: Math.floor(Math.random() * 30) + 60,
+    pressure: 1013,
+    description: "Partly cloudy",
+    icon: "04d",
+    wind_speed: Math.floor(Math.random() * 20) + 5,
+    visibility: "10 km",
+    sunrise: "06:30 AM",
+    sunset: "06:30 PM",
+    last_updated: new Date().toISOString()
+  };
+  
+  // Check for alerts
+  const alerts = [];
+  if (weatherData.temperature > 35) {
+    alerts.push({
+      type: 'heatwave',
+      severity: 'medium',
+      message: `High temperature: ${weatherData.temperature}°C`
+    });
+  }
+  
+  res.json({
+    success: true,
+    city: city,
+    data: weatherData,
+    alerts: alerts,
+    risk_level: alerts.length > 0 ? 'medium' : 'low'
   });
 });
 
-// Make io accessible in routes
-app.set('io', io);
+// Get all alerts
+app.get('/api/alerts', (req, res) => {
+  res.json({
+    success: true,
+    alerts: [
+      {
+        id: 1,
+        city: 'Delhi',
+        type: 'heatwave',
+        severity: 'high',
+        message: 'Heatwave warning: Temperature above 40°C',
+        timestamp: new Date().toISOString()
+      },
+      {
+        id: 2,
+        city: 'Mumbai',
+        type: 'flood',
+        severity: 'medium',
+        message: 'Heavy rainfall expected',
+        timestamp: new Date().toISOString()
+      }
+    ]
+  });
+});
 
+// Simple database simulation
+const reports = [];
+
+// Get all reports
+app.get('/api/reports', (req, res) => {
+  res.json({
+    success: true,
+    count: reports.length,
+    reports: reports
+  });
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 Real-time alerts enabled`);
+app.listen(PORT, () => {
+  console.log('='.repeat(50));
+  console.log(`🚀 BACKEND SERVER STARTED`);
+  console.log(`📍 URL: http://localhost:${PORT}`);
+  console.log('='.repeat(50));
+  console.log('\n📡 Available Endpoints:');
+  console.log(`   GET  /                    - Health check`);
+  console.log(`   GET  /test                - Test endpoint`);
+  console.log(`   POST /api/risks/report    - Submit risk report`);
+  console.log(`   GET  /api/weather/:city   - Get weather for city`);
+  console.log(`   GET  /api/alerts          - Get all alerts`);
+  console.log(`   GET  /api/reports         - Get all reports`);
+  console.log('\n🔧 To test with curl:');
+  console.log(`   curl http://localhost:${PORT}/test`);
+  console.log(`   curl -X POST http://localhost:${PORT}/api/risks/report -H "Content-Type: application/json" -d '{"city":"Delhi","risk_type":"flood"}'`);
+  console.log('='.repeat(50));
 });
