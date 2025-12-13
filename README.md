@@ -22,6 +22,21 @@ The platform integrates **public weather APIs** and presents data through a **si
 Message-Based Training:---> The AI learns from user messages and inputs about weather conditions and disaster experiences
 Continuous Improvement:--->  Each interaction helps the AI better understand risk patterns and appropriate responses
 
+##🌍 AI Training & Learning – Disaster Risk Analysis
+
+This project implements Message-Based Training and Continuous Learning for an AI-driven Natural Disaster Early Warning System using K-Means Clustering.
+
+The system learns from user messages, weather inputs, and disaster experiences to identify risk patterns and improve alert accuracy over time.
+
+<img width="1536" height="1024" alt="ChatGPT Image Dec 13, 2025, 09_53_47 PM" src="https://github.com/user-attachments/assets/c21e79c3-f1a0-4a6b-af53-1c77f27a1af2" />
+
+📌 Objective
+
+- Learn from user-submitted messages (weather conditions, disaster reports)
+- Convert messages into numerical features
+- Use K-Means clustering to identify disaster risk patterns
+- Continuously improve predictions with new data
+
 ##  Risk Assessment & Warnings
 
 Risk Level Evaluation: The AI analyzes weather data to determine risk levels (Low, Medium, High)
