@@ -1,0 +1,13 @@
+project_id = "emmiuezioqconkzbykqq"
+
+[functions.ai-predict]
+verify_jwt = false
+
+[functions.fetch-weather]
+verify_jwt = false
+
+[functions.get-alerts]
+verify_jwt = false
+
+[functions.send-alert]
+verify_jwt = false
