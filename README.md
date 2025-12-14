@@ -58,5 +58,8 @@ Heatwave Warning: Hydration tips, cool shelter information
 - Node.js
 - npm
 - Git & GitHub
+  
+## Modal Training
+- Python
 
 
